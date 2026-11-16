@@ -12,8 +12,9 @@
 | 目录 | 是什么 | 适合 |
 |---|---|---|
 | [`arm_sim_lab/`](arm_sim_lab/) | Python 运动学手算核对 + matplotlib 出图 | 手算 FK/IK 后核对、理解多解 |
-| [`arm_sim_web/`](arm_sim_web/) | 纯 SVG 3D 网页模拟器，零依赖零联网 | 双击 `index.html` 看效果、自动抓取演示 |
+| [`arm_sim_web/`](arm_sim_web/) | 纯 SVG 3D 网页模拟器，零依赖零联网；**含坐标链坐标系可视化 + 闭环视觉模式（合成相机+噪声）** | 双击 `index.html` 看效果、自动抓取演示、M3 坐标链 |
 | [`arm_sitl/`](arm_sitl/) | 软件在环仿真平台（SITL） | 跑"相机→坐标链→IK→协议→仿真MCU→臂"闭环 |
+| [`docs/`](docs/) | 学习指引 + 给电控的臂协议需求清单 | 工具↔M1-M6 映射、手算练习、解 P0 协议阻塞 |
 
 ## 快速开始
 
@@ -51,9 +52,12 @@ python3 test_sitl.py             # 全部测试
 
 ## 学习路线对应
 
+详见 [`docs/学习指引.md`](docs/学习指引.md)（工具↔M1-M6 映射 + 手算练习 + 明天学习顺序）。
+
 - `arm_sim_lab` / `arm_sim_web` → 二维两关节正 / 逆运动学、坐标链直觉。
 - `arm_sitl` → 手眼坐标链 `T_base_head = T_base_tool(q)·T_tool_camera·T_camera_head`、
   抓取任务状态机、协议适配、闭环。
+- 接真机的 P0 阻塞 → [`docs/电控臂协议需求清单.md`](docs/电控臂协议需求清单.md)（拿去问电控/组长）。
 
 ## License
 

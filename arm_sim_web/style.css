@@ -55,4 +55,9 @@ code { background: #0d1320; padding: 1px 5px; border-radius: 4px; }
 .socket { fill: #3a6ea5; fill-opacity: 0.30; stroke: #5a9bd5; stroke-width: 1; stroke-dasharray: 3 2; }
 .goal { fill: none; stroke: var(--bad); stroke-width: 2.5; }
 .ws { fill: #4da3ff; fill-opacity: 0.05; stroke: #4da3ff; stroke-opacity: 0.4; stroke-width: 1; stroke-dasharray: 4 3; }
+.fx { stroke: #ff5555; stroke-width: 2; }
+.fy { stroke: #44dd66; stroke-width: 2; }
+.fz { stroke: #4488ff; stroke-width: 2; }
+.est { fill: none; stroke: #ffc857; stroke-width: 2; stroke-dasharray: 3 2; }
+button.on { background: var(--ok); color: #06121f; border-color: var(--ok); font-weight: 600; }
 text { fill: #9fb0d0; font-size: 12px; }

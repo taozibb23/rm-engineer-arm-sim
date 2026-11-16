@@ -52,6 +52,41 @@
     return sols;
   }
 
+  // ---------- SE(3) 助手（坐标链 / 相机仿真用）----------
+  function rotRpy(rpy) {
+    const [r, p, y] = rpy;
+    const cr = Math.cos(r), sr = Math.sin(r), cp = Math.cos(p), sp = Math.sin(p), cy = Math.cos(y), sy = Math.sin(y);
+    const Rx = [[1, 0, 0], [0, cr, -sr], [0, sr, cr]];
+    const Ry = [[cp, 0, sp], [0, 1, 0], [-sp, 0, cp]];
+    const Rz = [[cy, -sy, 0], [sy, cy, 0], [0, 0, 1]];
+    return mul3(Rz, mul3(Ry, Rx));
+  }
+  function mul3(A, B) {
+    const C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++)
+      C[i][j] = A[i][0] * B[0][j] + A[i][1] * B[1][j] + A[i][2] * B[2][j];
+    return C;
+  }
+  function se3(R, t) { return [[R[0][0], R[0][1], R[0][2], t[0]], [R[1][0], R[1][1], R[1][2], t[1]], [R[2][0], R[2][1], R[2][2], t[2]], [0, 0, 0, 1]]; }
+  function mulSe3(A, B) {
+    const C = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++)
+      C[i][j] = A[i][0] * B[0][j] + A[i][1] * B[1][j] + A[i][2] * B[2][j] + A[i][3] * B[3][j];
+    return C;
+  }
+  function invSe3(T) {
+    const R = [[T[0][0], T[0][1], T[0][2]], [T[1][0], T[1][1], T[1][2]], [T[2][0], T[2][1], T[2][2]]];
+    const t = [T[0][3], T[1][3], T[2][3]];
+    const Rt = [[R[0][0], R[1][0], R[2][0]], [R[0][1], R[1][1], R[2][1]], [R[0][2], R[1][2], R[2][2]]];
+    const nt = [-(Rt[0][0] * t[0] + Rt[0][1] * t[1] + Rt[0][2] * t[2]), -(Rt[1][0] * t[0] + Rt[1][1] * t[1] + Rt[1][2] * t[2]), -(Rt[2][0] * t[0] + Rt[2][1] * t[1] + Rt[2][2] * t[2])];
+    return se3(Rt, nt);
+  }
+  function T_base_tool(q, l1 = L1, l2 = L2) {
+    const st = forward(q[0], q[1], q[2], l1, l2);
+    return se3(st.end_rot, st.end_pos);
+  }
+  function trans(T) { return [T[0][3], T[1][3], T[2][3]]; }
+
   // 自检：对齐 C++ test_arm_geometry.cpp
   function selfTest() {
     const near = (a, b, t = 1e-9) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) < t;
@@ -69,8 +104,14 @@
     if (sols.length !== 2) return { ok: false, why: 'IK 多解个数=' + sols.length };
     for (const s of sols) if (!near(forward(s.psi, s.alpha, s.beta).end_pos, [0.149, 0, 0.149])) return { ok: false, why: 'IK 往返' };
     if (inverse([0.5, 0, 0]).length !== 0) return { ok: false, why: '不可达应无解' };
-    return { ok: true, why: 'FK对齐C++3例 + 末端水平 + IK多解往返 + 不可达' };
+    // SE(3) 往返 + 坐标链零噪声一致性
+    const T = T_base_tool([0.3, 0.4, 0.2]);
+    const I = mulSe3(T, invSe3(T));
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++)
+      if (Math.abs(I[i][j] - (i === j ? 1 : 0)) > 1e-9) return { ok: false, why: 'SE3 往返' };
+    return { ok: true, why: 'FK对齐C++3例 + 末端水平 + IK多解往返 + 不可达 + SE3往返' };
   }
 
-  return { L1, L2, forward, inverse, reachable, reachRadius, selfTest };
+  return { L1, L2, forward, inverse, reachable, reachRadius, selfTest,
+           rotRpy, se3, mulSe3, invSe3, T_base_tool, trans, mul3 };
 });

@@ -23,7 +23,20 @@
       <div class="row"><span>关节角</span><b id="angles">—</b></div>
       <div class="row"><span>末端轴点</span><b id="endpos">—</b></div>
       <div class="row"><span>可达</span><b id="reach">—</b></div>
+      <div class="row"><span>相机估计</span><b id="est_pos">—（开环）</b></div>
+      <div class="row"><span>估计误差</span><b id="est_err">—</b></div>
       <div id="selftest" class="selftest"></div>
+    </div>
+
+    <div class="card">
+      <h2>视图 / 闭环（M3 坐标链）</h2>
+      <div class="btnrow">
+        <button id="btn_frames">坐标系</button>
+        <button id="btn_cl">闭环模式</button>
+      </div>
+      <label>相机位置噪声 σ <span id="v_noise">2.0 mm</span></label>
+      <input type="range" id="sl_noise" min="0" max="10" step="0.5" value="2">
+      <p class="note">坐标系：显示 基座B→工具T→相机C→目标H 四个坐标系（x红/y绿/z蓝）。<br>闭环模式：抓取改用<b>合成相机估计</b>（含噪声）而非真值，观察估计误差如何影响抓取。</p>
     </div>
 
     <div class="card">

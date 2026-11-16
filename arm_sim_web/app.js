@@ -12,16 +12,30 @@ const fmt = (v, d = 3) => v.map(x => Number(x).toFixed(d)).join(', ');
 // ---- 场景状态 ----
 const L1 = K.L1, L2 = K.L2;
 const GRASP_DROP = 0.030; // 夹住时物体中心在末端轴点下方此距离（教学假设，非实测）
+// 手眼外参 T_tool_camera（占位，与 arm_sitl/config.json 一致：光轴朝下）
+const T_tool_camera = K.se3(K.rotRpy([Math.PI, 0, 0]), [0, 0, 0]);
 const state = {
   angles: { psi: 0, alpha: 0.5, beta: 0.5 },   // rad
-  object: { pos: [0.18, 0.10, 0.022], size: 0.020 },  // 头部样件（教学对象，非真实识别）
+  object: { pos: [0.18, 0.10, 0.022], size: 0.020, yaw: 0 },  // 头部样件（教学对象，非真实识别）
   install: { pos: [0.18, -0.12, 0.022], size: 0.024 }, // 安装位
   gripped: false,
   gripOpen: 1,          // 1=张开 0=闭合
   stage: 'idle',
   ikSols: [], ikPick: 0,
   showWorkspace: false,
+  showFrames: false,    // 坐标链坐标系可视化
+  closedLoop: false,    // 闭环模式：用合成相机估计而非真值
+  noiseSigma: 0.002,    // 相机位置噪声 sigma (m)
+  estTarget: null,      // 估计的目标位置（闭环）
+  estError: 0,          // 估计误差 (m)
 };
+// 简易高斯随机（Box-Muller），用于相机噪声
+function gauss() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
 const STAGE_NAMES = {
   idle: '待开始', observe: '识别/定位', pregrasp: '移动到预抓取位', approach: '接近拾取位',
   pick: '拾取确认', lift: '抬起', transfer: '搬运', insert: '对准安装位',
@@ -43,6 +57,36 @@ function scenePoints() {
   const pts = [[0, 0, 0], st.elbow, st.end_pos, state.object.pos, state.install.pos,
   [0.32, 0.22, 0], [-0.05, -0.22, 0], [0, 0, 0.30]];
   return { st, pts };
+}
+
+// ---- 合成相机 + 手眼坐标链（闭环模式用，对齐 arm_sitl/camera.py）----
+function currentObjPos() {
+  const st = K.forward(state.angles.psi, state.angles.alpha, state.angles.beta);
+  return state.gripped ? [st.end_pos[0], st.end_pos[1], st.end_pos[2] - GRASP_DROP] : state.object.pos;
+}
+function T_base_camera() {
+  const q = [state.angles.psi, state.angles.alpha, state.angles.beta];
+  return K.mulSe3(K.T_base_tool(q), T_tool_camera);
+}
+// 仿真一帧相机观测并反算基座系目标估计：T_base_est = T_base_camera · (inv(T_base_camera)·T_true + 噪声)
+function cameraEstimate() {
+  const Tbc = T_base_camera();
+  const Ttrue = K.se3(K.rotRpy([0, 0, state.object.yaw]), currentObjPos());
+  const Tcam = K.mulSe3(K.invSe3(Tbc), Ttrue);
+  const R = [Tcam[0].slice(0, 3), Tcam[1].slice(0, 3), Tcam[2].slice(0, 3)];
+  const t = [Tcam[0][3] + gauss() * state.noiseSigma, Tcam[1][3] + gauss() * state.noiseSigma, Tcam[2][3] + gauss() * state.noiseSigma];
+  const Test = K.mulSe3(Tbc, K.se3(R, t));
+  return K.trans(Test);
+}
+function computeEstimate() {
+  if (!state.closedLoop) { state.estTarget = null; state.estError = 0; return; }
+  state.estTarget = cameraEstimate();
+  const truth = currentObjPos();
+  state.estError = Math.hypot(state.estTarget[0] - truth[0], state.estTarget[1] - truth[1], state.estTarget[2] - truth[2]);
+}
+// 演示用的目标参考：闭环用估计，开环用真值
+function getTargetRef() {
+  return (state.closedLoop && state.estTarget) ? state.estTarget : state.object.pos;
 }
 
 function drawScene() {
@@ -94,6 +138,30 @@ function drawScene() {
   html += label(state.install.pos, '安装位', 8, 28);
   // IK 目标标记
   if (state.ikTarget) { const p = point(state.ikTarget); html += `<circle class="goal" cx="${p[0]}" cy="${p[1]}" r="11"/>` + label(state.ikTarget, 'IK目标', 10, 26); }
+  // 闭环估计目标标记
+  if (state.closedLoop && state.estTarget) {
+    const p = point(state.estTarget);
+    html += `<circle class="est" cx="${p[0]}" cy="${p[1]}" r="9"/>` + label(state.estTarget, '相机估计', 10, -22);
+  }
+  // 坐标链坐标系（base→tool→camera→target），服务 M3 学习
+  if (state.showFrames) {
+    const q = [state.angles.psi, state.angles.alpha, state.angles.beta];
+    const frames = [
+      [K.se3([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [0, 0, 0]), '基座B', 0.05],
+      [K.T_base_tool(q), '工具T', 0.04],
+      [T_base_camera(), '相机C', 0.035],
+      [K.se3(K.rotRpy([0, 0, state.object.yaw]), currentObjPos()), '目标H', 0.03],
+    ];
+    for (const [T, name, sc] of frames) {
+      const o = K.trans(T);
+      const cols = [[T[0][0], T[1][0], T[2][0]], [T[0][1], T[1][1], T[2][1]], [T[0][2], T[1][2], T[2][2]]];
+      ['fx', 'fy', 'fz'].forEach((cls, i) => {
+        const c = cols[i];
+        html += line(o, [o[0] + sc * c[0], o[1] + sc * c[1], o[2] + sc * c[2]], cls);
+      });
+      html += label(o, name, 6, 16);
+    }
+  }
   svg.innerHTML = html;
 
   function cube(pos, size, cls, pt) {
@@ -119,8 +187,14 @@ function updatePanel() {
   $('v_psi').textContent = deg(state.angles.psi).toFixed(0) + '°';
   $('v_alpha').textContent = deg(state.angles.alpha).toFixed(0) + '°';
   $('v_beta').textContent = deg(state.angles.beta).toFixed(0) + '°';
+  if ($('est_pos')) {
+    if (state.closedLoop && state.estTarget) {
+      $('est_pos').textContent = fmt(state.estTarget) + ' m';
+      $('est_err').textContent = (state.estError * 1000).toFixed(1) + ' mm';
+    } else { $('est_pos').textContent = '—（开环）'; $('est_err').textContent = '—'; }
+  }
 }
-function render() { drawScene(); updatePanel(); }
+function render() { computeEstimate(); drawScene(); updatePanel(); }
 
 // ---- 动画 ----
 let anim = null;
@@ -161,15 +235,16 @@ function runDemo() {
   if (demoRunning) return;
   demoRunning = true; state.gripped = false; state.gripOpen = 1;
   state.object.pos = [0.18, 0.10, 0.022];
-  const obj = state.object.pos, inst = state.install.pos;
+  const inst = state.install.pos;
   const above = (p, h) => [p[0], p[1], p[2] + h];
   const graspEnd = p => above(p, GRASP_DROP); // 末端到此高度时，夹住的物体正好落在 p
+  let liftRef = null;
   const steps = [
     ['observe', 600, null],
-    ['pregrasp', 1000, () => moveEndTo(above(obj, 0.09), 1000, next)],
-    ['approach', 900, () => moveEndTo(graspEnd(obj), 900, next)],
-    ['pick', 500, () => { state.gripOpen = 0; state.gripped = true; render(); setTimeout(next, 500); }],
-    ['lift', 900, () => moveEndTo(above(obj, 0.12), 900, next)],
+    ['pregrasp', 1000, () => moveEndTo(above(getTargetRef(), 0.09), 1000, next)],
+    ['approach', 900, () => moveEndTo(graspEnd(getTargetRef()), 900, next)],
+    ['pick', 500, () => { state.gripOpen = 0; state.gripped = true; liftRef = currentObjPos(); render(); setTimeout(next, 500); }],
+    ['lift', 900, () => moveEndTo(above(liftRef, 0.12), 900, next)],
     ['transfer', 1200, () => moveEndTo(above(inst, 0.10), 1200, next)],
     ['insert', 900, () => moveEndTo(graspEnd(inst), 900, next)],
     ['assemble', 500, () => { state.gripOpen = 1; state.gripped = false; state.object.pos = [...inst]; render(); setTimeout(next, 500); }],
@@ -233,6 +308,13 @@ function bind() {
     render();
   };
   $('btn_ws').onclick = () => { state.showWorkspace = !state.showWorkspace; drawScene(); };
+  $('btn_frames').onclick = () => { state.showFrames = !state.showFrames; $('btn_frames').classList.toggle('on', state.showFrames); drawScene(); };
+  $('btn_cl').onclick = () => { state.closedLoop = !state.closedLoop; $('btn_cl').classList.toggle('on', state.closedLoop); render(); };
+  $('sl_noise').addEventListener('input', () => {
+    state.noiseSigma = parseFloat($('sl_noise').value) / 1000;
+    $('v_noise').textContent = parseFloat($('sl_noise').value).toFixed(1) + ' mm';
+    render();
+  });
   window.addEventListener('resize', drawScene);
 }
 

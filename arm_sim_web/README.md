@@ -25,8 +25,11 @@
 
 ## 验证
 
-- node 自检：`node -e "console.log(require('./arm_kinematics.js').selfTest())"`。
-- 数学与 `arm_sim_lab` 同源，对齐 C++ `level_arm.cpp`。
+```bash
+node test_web.js     # 无头功能测试：渲染/坐标系/闭环/噪声/演示
+```
+数学核心自检：`node -e "console.log(require('./arm_kinematics.js').selfTest().why)"`。
+数学与 `arm_sim_lab` 同源，对齐 C++ `level_arm.cpp`。
 
 ## 边界
 

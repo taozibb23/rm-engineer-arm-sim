@@ -9,6 +9,12 @@ header { padding: 14px 20px 6px; }
 h1 { font-size: 19px; margin: 0 0 8px; }
 .banner { background: #3a2e12; color: var(--warn); border: 1px solid #6b5518;
   padding: 7px 12px; border-radius: 8px; font-size: 13px; }
+.learn { margin: 10px 20px 0; background: var(--card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 4px 14px; }
+.learn summary { cursor: pointer; font-size: 14px; color: var(--accent); padding: 8px 0; font-weight: 600; }
+.learn-body { font-size: 13px; line-height: 1.7; color: #c3d0e8; padding: 4px 0 12px; }
+.learn-body p { margin: 6px 0; }
+.learn-tip { color: var(--ok); }
 main { display: flex; gap: 16px; padding: 12px 20px; align-items: flex-start; flex-wrap: wrap; }
 .stage-wrap { flex: 1 1 480px; min-width: 320px; background: var(--card);
   border: 1px solid var(--line); border-radius: 12px; padding: 10px; position: relative; }

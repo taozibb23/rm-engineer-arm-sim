@@ -1,0 +1,48 @@
+{
+  "_comment": "diesel 机械臂 SITL 仿真配置。所有硬件参数实测后改这里即可适配真机。验证级别：合成/仿真，非实机。",
+  "arm": {
+    "l1_m": 0.149,
+    "l2_m": 0.149,
+    "_limits_note": "实物限位未测，暂给宽范围占位；实测后收紧。单位 rad。",
+    "limits_rad": {"psi": [-3.14, 3.14], "alpha": [-1.57, 3.14], "beta": [-3.14, 3.14]},
+    "joint_speed_limit_rad_s": 2.0,
+    "_transmission_note": "几何角->电机角传动映射未确认。sim 内用几何角；接真实电控前必须改为电机角并标定传动比/零偏。",
+    "transmission": {"mode": "geometric_placeholder", "ratio": [1.0, 1.0, 1.0], "zero_offset": [0.0, 0.0, 0.0]}
+  },
+  "camera": {
+    "_note": "eye-in-hand 末端相机，光轴朝下(-z)做自上而下抓取。T_tool_camera 为手眼外参（待实测标定），此处占位。rpy=[pi,0,0] 使相机+z光轴对准工具-z。",
+    "T_tool_camera": {"translation_m": [0.0, 0.0, 0.0], "rpy_rad": [3.141592653589793, 0.0, 0.0]},
+    "intrinsics": {"fx": 600.0, "fy": 600.0, "cx": 320.0, "cy": 240.0},
+    "noise": {"pos_sigma_m": 0.002, "rot_sigma_rad": 0.005, "dropout_prob": 0.0},
+    "max_age_s": 0.1,
+    "max_pairing_diff_s": 0.005
+  },
+  "grasp": {
+    "_note": "抓取偏移与容差均为教学假设，非实测。末端水平，自上而下抓取。",
+    "grasp_height_m": 0.03,
+    "pregrasp_height_m": 0.09,
+    "lift_height_m": 0.13,
+    "attach_tol_m": 0.015,
+    "T_target_grasp_translation_m": [0.0, 0.0, 0.0]
+  },
+  "scenario": {
+    "target_pose_base": {"translation_m": [0.18, 0.10, 0.022], "rpy_rad": [0.0, 0.0, 0.0]},
+    "install_pose_base": {"translation_m": [0.18, -0.12, 0.022], "rpy_rad": [0.0, 0.0, 0.0]},
+    "home_angles_rad": [0.0, 0.5, 0.5]
+  },
+  "protocol": {
+    "_note": "占位臂协议，待电控/组长登记确认。msg_type 编号非正式分配。接真实电控前必须与 RoboLink 对账。",
+    "arm_control_msg_type": 36,
+    "arm_feedback_msg_type": 20,
+    "angle_domain": "geometric_placeholder",
+    "rate_hz": 100
+  },
+  "sim": {
+    "dt_s": 0.01,
+    "duration_s": 30.0,
+    "mode": "sim",
+    "seed": 42,
+    "transport": "in_process",
+    "udp": {"host": "127.0.0.1", "pc_port": 9100, "mcu_port": 9101}
+  }
+}

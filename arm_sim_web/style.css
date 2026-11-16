@@ -1,0 +1,58 @@
+:root {
+  --bg: #0f1420; --card: #1a2233; --line: #2c3a55; --txt: #dce6f5;
+  --accent: #4da3ff; --ok: #38d39f; --bad: #ff6b6b; --warn: #ffc857;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--txt);
+  font-family: "Noto Sans CJK SC", "Droid Sans Fallback", system-ui, sans-serif; }
+header { padding: 14px 20px 6px; }
+h1 { font-size: 19px; margin: 0 0 8px; }
+.banner { background: #3a2e12; color: var(--warn); border: 1px solid #6b5518;
+  padding: 7px 12px; border-radius: 8px; font-size: 13px; }
+main { display: flex; gap: 16px; padding: 12px 20px; align-items: flex-start; flex-wrap: wrap; }
+.stage-wrap { flex: 1 1 480px; min-width: 320px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 12px; padding: 10px; position: relative; }
+#scene { width: 100%; display: block; cursor: grab; }
+#scene:active { cursor: grabbing; }
+.hint { position: absolute; bottom: 8px; right: 14px; font-size: 12px; color: #7f8db0; }
+.panel { flex: 0 1 340px; min-width: 300px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.card h2 { font-size: 14px; margin: 0 0 10px; color: var(--accent); }
+.row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 3px 0; }
+.row span { color: #8fa0c0; }
+.row b { font-weight: 600; text-align: right; }
+.selftest { margin-top: 8px; font-size: 12px; color: #8fa0c0; }
+.ok { color: var(--ok); font-weight: 600; }
+.bad { color: var(--bad); font-weight: 600; }
+label { display: block; font-size: 13px; margin: 8px 0 2px; color: #b9c6e0; }
+label span { float: right; color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.ikgrid { display: flex; gap: 8px; }
+.ikgrid label { flex: 1; font-size: 12px; }
+.ikgrid input { width: 100%; background: #0d1320; border: 1px solid var(--line);
+  color: var(--txt); border-radius: 6px; padding: 5px; }
+button { background: #243350; color: var(--txt); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 13px; }
+button:hover { background: #2e4066; }
+button.primary { background: var(--accent); color: #06121f; border: none; font-weight: 600; width: 100%; margin-top: 8px; }
+button.primary:hover { filter: brightness(1.1); }
+.btnrow { display: flex; gap: 8px; margin-top: 8px; }
+.btnrow button { flex: 1; }
+.ikres { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.solbtn { text-align: left; font-size: 12px; }
+.note { font-size: 12px; color: #8fa0c0; margin: 10px 0 0; line-height: 1.5; }
+footer { padding: 8px 20px 20px; font-size: 12px; color: #6f7da0; }
+code { background: #0d1320; padding: 1px 5px; border-radius: 4px; }
+/* SVG 图元 */
+.grid { stroke: #22304a; stroke-width: 1; }
+.axis { stroke: #5a6b8c; stroke-width: 1.5; }
+.arm { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
+.joint { fill: #0f1420; stroke: var(--accent); stroke-width: 2.5; }
+.joint.end { stroke: var(--ok); }
+.gripper { stroke: var(--ok); stroke-width: 3; stroke-linecap: round; }
+.head { fill: #c98a3d; fill-opacity: 0.55; stroke: #e0a85a; stroke-width: 1; }
+.head.held { fill: #e0a85a; fill-opacity: 0.8; }
+.socket { fill: #3a6ea5; fill-opacity: 0.30; stroke: #5a9bd5; stroke-width: 1; stroke-dasharray: 3 2; }
+.goal { fill: none; stroke: var(--bad); stroke-width: 2.5; }
+.ws { fill: #4da3ff; fill-opacity: 0.05; stroke: #4da3ff; stroke-opacity: 0.4; stroke-width: 1; stroke-dasharray: 4 3; }
+text { fill: #9fb0d0; font-size: 12px; }

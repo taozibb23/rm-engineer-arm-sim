@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>diesel 三自由度机械臂模拟器（合成/仿真级）</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>diesel 实物三自由度机械臂模拟器</h1>
+  <div class="banner">⚠ 合成 / 仿真级 · 理想运动学 · <b>非实机</b> · 抓取/装配均为演示，不代表真实能力</div>
+</header>
+<main>
+  <section class="stage-wrap">
+    <svg id="scene" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="hint">拖动旋转视角 · 滚轮缩放</div>
+  </section>
+  <aside class="panel">
+    <div class="card">
+      <h2>状态</h2>
+      <div class="row"><span>阶段</span><b id="stage">待开始</b></div>
+      <div class="row"><span>关节角</span><b id="angles">—</b></div>
+      <div class="row"><span>末端轴点</span><b id="endpos">—</b></div>
+      <div class="row"><span>可达</span><b id="reach">—</b></div>
+      <div id="selftest" class="selftest"></div>
+    </div>
+
+    <div class="card">
+      <h2>正运动学（拖滑条）</h2>
+      <label>ψ 底座 yaw <span id="v_psi">0°</span></label>
+      <input type="range" id="sl_psi" min="-180" max="180" step="1" value="0">
+      <label>α 大臂仰角 <span id="v_alpha">0°</span></label>
+      <input type="range" id="sl_alpha" min="-90" max="180" step="1" value="29">
+      <label>β 小臂仰角 <span id="v_beta">0°</span></label>
+      <input type="range" id="sl_beta" min="-180" max="180" step="1" value="29">
+    </div>
+
+    <div class="card">
+      <h2>逆运动学（给目标点）</h2>
+      <div class="ikgrid">
+        <label>x(m)<input type="number" id="ik_x" step="0.01" value="0.149"></label>
+        <label>y(m)<input type="number" id="ik_y" step="0.01" value="0"></label>
+        <label>z(m)<input type="number" id="ik_z" step="0.01" value="0.149"></label>
+      </div>
+      <button id="btn_ik" class="primary">求解 IK（看多解）</button>
+      <div id="ik_result" class="ikres"></div>
+    </div>
+
+    <div class="card">
+      <h2>演示</h2>
+      <button id="btn_demo" class="primary">▶ 自动抓取演示（拾取→搬运→装配）</button>
+      <div class="btnrow">
+        <button id="btn_ws">可达圈</button>
+        <button id="btn_reset">复位</button>
+      </div>
+      <p class="note">演示按任务状态机走：识别→预抓取→接近→拾取→抬起→搬运→对准→装配→完成。物体是教学立方体，<b>不是真实头部识别</b>。</p>
+    </div>
+  </aside>
+</main>
+<footer>数学核心对齐 C++ <code>level_arm.cpp</code> · 零依赖纯 SVG · 对应学习 M2/M3 · 实物 IK 的 C++ 实现仍需本人编写</footer>
+<script src="arm_kinematics.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

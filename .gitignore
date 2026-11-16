@@ -9,6 +9,8 @@ venv/
 # 生成的图/日志
 *.png
 *.log
+# 作品集图是交付物，保留
+!docs/figs/*.png
 
 # 节点/编辑器/系统
 node_modules/

@@ -7,6 +7,25 @@
 逐步搭建的一套仿真工具，用来记录自己的学习轨迹。从"看懂运动学"到"跑通接电控的闭环"，
 三个工具层层递进。**数学核心同源，都对齐战队的 C++ 正运动学 `level_arm.cpp`。**
 
+## 作品展示
+
+抓取演示（合成/仿真级，由 `scripts/make_portfolio.py` 复现）：
+
+![抓取演示](docs/figs/grasp_demo.gif)
+
+运动学 / 坐标链 / 可达域图解：
+
+![作品集图解](docs/figs/portfolio.png)
+
+## 技术栈 / 能力体现
+
+- **运动学**：三自由度正/逆运动学（余弦定理两连杆 + 多解/可达/限位），SE(3) 坐标变换。
+- **手眼坐标链**：`T_base_target = T_base_tool(q)·T_tool_camera·T_camera_target`，eye-in-hand。
+- **闭环仿真（SITL）**：合成相机观测注入 → 坐标链估计 → 任务状态机 → IK → 协议帧 → 仿真 MCU → 关节反馈。
+- **协议设计**：仿 RoboLink 帧格式（头/类型/长度/载荷/CRC32），占位臂协议 + 编解码 + 篡改拒绝测试。
+- **工程纪律**：config 驱动适配硬件、验证级别标注、单元测试（运动学/协议/闭环/抗噪/丢帧）、可复现脚本。
+- **语言/工具**：C++（战队后端对齐）· Python（numpy/matplotlib）· 原生 JS/SVG（零依赖网页）· Git。
+
 ## 三个工具
 
 | 目录 | 是什么 | 适合 |
@@ -14,7 +33,9 @@
 | [`arm_sim_lab/`](arm_sim_lab/) | Python 运动学手算核对 + matplotlib 出图 | 手算 FK/IK 后核对、理解多解 |
 | [`arm_sim_web/`](arm_sim_web/) | 纯 SVG 3D 网页模拟器，零依赖零联网；**含坐标链坐标系可视化 + 闭环视觉模式（合成相机+噪声）** | 双击 `index.html` 看效果、自动抓取演示、M3 坐标链 |
 | [`arm_sitl/`](arm_sitl/) | 软件在环仿真平台（SITL） | 跑"相机→坐标链→IK→协议→仿真MCU→臂"闭环 |
-| [`docs/`](docs/) | 学习指引 + 给电控的臂协议需求清单 | 工具↔M1-M6 映射、手算练习、解 P0 协议阻塞 |
+| [`cpp_reference/`](cpp_reference/) | 实物 IK 的 C++ 参考实现 + 测试（已编译验证） | 读改调验后 port 进战队 `diesel_ws`，成为真实贡献 |
+| [`docs/`](docs/) | 学习指引 + 电控臂协议需求清单 + 求职材料 | 工具↔M1-M6、手算练习、解 P0、简历/面试 Q&A |
+| [`scripts/`](scripts/) | 作品集图/动图生成脚本 | 复现 `docs/figs/` 全部可视化 |
 
 ## 快速开始
 
